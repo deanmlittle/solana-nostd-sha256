@@ -2,7 +2,7 @@
 name = "solana-nostd-sha256"
 authors = ["Dean Little <@deanmlittle>"]
 description = "A more efficient implementation of Sha256 for SVM"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 
