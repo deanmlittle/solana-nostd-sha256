@@ -10,11 +10,15 @@ extern "C" {
     fn sol_sha256(vals: *const u8, val_len: u64, hash_result: *mut u8) -> u64;
 }
 
-pub fn hash<T: AsRef<[u8]>>(data: T) -> [u8;HASH_LENGTH] {
-    hashv::<T>(&[data])
+pub fn hash(data: &[u8]) -> [u8;HASH_LENGTH] {
+    hashv(&[data])
 }
 
-pub fn hashv<T: AsRef<[u8]>>(data: &[T]) -> [u8; HASH_LENGTH] {
+pub fn hash_ref<T: AsRef<[u8]>>(data: T) -> [u8;HASH_LENGTH] {
+    hashv(&[data.as_ref()])
+}
+
+pub fn hashv(data: &[&[u8]]) -> [u8; HASH_LENGTH] {
     let mut out = MaybeUninit::<[u8; HASH_LENGTH]>::uninit();
     unsafe {
         hash_into(data, &mut out.assume_init_mut());
@@ -23,16 +27,16 @@ pub fn hashv<T: AsRef<[u8]>>(data: &[T]) -> [u8; HASH_LENGTH] {
 }
 
 #[cfg(not(target_os = "solana"))]
-pub fn hash_into<T: AsRef<[u8]>>(data: &[T], out: &mut [u8; HASH_LENGTH]) {
+pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     let mut hasher = Sha256::new();
     for item in data {
-        hasher.update(item.as_ref());
+        hasher.update(item);
     }
     hasher.finalize_into(out.into());
 }
 
 #[cfg(target_os = "solana")]
-pub fn hash_into<T: AsRef<[u8]>>(data: &[T], out: &mut [u8; HASH_LENGTH]) {
+pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     unsafe {
         sol_sha256(
             data as *const _ as *const u8,
@@ -48,8 +52,8 @@ mod tests {
 
     #[test]
     fn test_hash() {
-        let h = hash("test");
-        let h2 = hashv(&["test"]);
+        let h = hash_ref("test");
+        let h2 = hashv(&[b"test".as_ref()]);
         assert_eq!(h, h2);
         assert_eq!(h2, [0x9f, 0x86, 0xd0, 0x81, 0x88, 0x4c, 0x7d, 0x65, 0x9a, 0x2f, 0xea, 0xa0, 0xc5, 0x5a, 0xd0, 0x15, 0xa3, 0xbf, 0x4f, 0x1b, 0x2b, 0x0b, 0x82, 0x2c, 0xd1, 0x5d, 0x6c, 0x15, 0xb0, 0xf0, 0x0a, 0x08]);
     }
