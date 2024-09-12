@@ -1,4 +1,4 @@
-use std::mem::MaybeUninit;
+use core::mem::MaybeUninit;
 
 #[cfg(not(target_os = "solana"))]
 use sha2::{Digest, Sha256};
