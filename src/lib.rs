@@ -27,6 +27,7 @@ pub fn hashv(data: &[&[u8]]) -> [u8; HASH_LENGTH] {
 }
 
 #[cfg(not(target_os = "solana"))]
+#[inline(always)]
 pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     let mut hasher = Sha256::new();
     for item in data {
@@ -36,6 +37,7 @@ pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
 }
 
 #[cfg(target_os = "solana")]
+#[inline(always)]
 pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     unsafe {
         sol_sha256(
