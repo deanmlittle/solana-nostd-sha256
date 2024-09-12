@@ -1,6 +1,6 @@
 # Solana NoStd Sha256
 
-Just like Sha256, only 20cus cheaper than the std implementation. 
+A more efficient implementation of Sha256 for SVM.
 
 Improvements:
 
