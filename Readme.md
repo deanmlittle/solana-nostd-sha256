@@ -17,8 +17,8 @@ A more efficient implementation of Sha256 for SVM.
 
 | library        | function          | CU cost |
 |----------------|-------------------|---------|
-| nostd-sha256   | hashv(&[b"test"]) | 106     |
-| nostd-sha256   | hash(b"test")     | 109     |
-| nostd-sha256   | hash_ref("test")  | 111     |
+| nostd-sha256   | hashv(&[b"test"]) | 100     |
+| nostd-sha256   | hash(b"test")     | 105     |
+| nostd-sha256   | hash_ref("test")  | 105     |
 | solana-program | hashv(&[b"test"]) | 120     |
 | solana-program | hash(b"test")     | 123     |
