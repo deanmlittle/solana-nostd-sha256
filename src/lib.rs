@@ -32,7 +32,7 @@ pub fn hash_into<T: AsRef<[u8]>>(data: &[T], out: &mut [u8; HASH_LENGTH]) {
 }
 
 #[cfg(target_os = "solana")]
-pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
+pub fn hash_into<T: AsRef<[u8]>>(data: &[T], out: &mut [u8; HASH_LENGTH]) {
     unsafe {
         sol_sha256(
             data as *const _ as *const u8,
