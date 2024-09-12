@@ -10,46 +10,20 @@ extern "C" {
     fn sol_sha256(vals: *const u8, val_len: u64, hash_result: *mut u8) -> u64;
 }
 
-#[cfg(not(target_os = "solana"))]
-pub fn hash(data: &[u8]) -> [u8;HASH_LENGTH] {
-    hashv(&[data.as_ref()])
+pub fn hash<T: AsRef<[u8]>>(data: T) -> [u8;HASH_LENGTH] {
+    hashv::<T>(&[data])
 }
 
-#[cfg(target_os = "solana")]
-pub fn hash(data: &[u8]) -> [u8;HASH_LENGTH] {
-    hashv(&[msg.as_ref()])
-}
-
-#[cfg(not(target_os = "solana"))]
 pub fn hashv<T: AsRef<[u8]>>(data: &[T]) -> [u8; HASH_LENGTH] {
-    let mut hasher = Sha256::new();
-
-    for item in data {
-        hasher.update(item.as_ref());
-    }
-
-    let mut hash_result = MaybeUninit::<[u8; HASH_LENGTH]>::uninit();
-
+    let mut out = MaybeUninit::<[u8; HASH_LENGTH]>::uninit();
     unsafe {
-        hasher.finalize_into(hash_result.assume_init_mut().into());
-        hash_result.assume_init()
+        hash_into(data, &mut out.assume_init_mut());
+        out.assume_init()
     }
 }
 
-#[cfg(target_os = "solana")]
-pub fn hashv(data: &[&[u8]]) -> [u8;HASH_LENGTH] {
-    let mut hash_result = MaybeUninit::<[u8; HASH_LENGTH]>::uninit();
-    unsafe {
-        sol_sha256(
-            data as *const _ as *const u8,
-            data.len() as u64,
-            hash_result.as_mut_ptr() as *mut u8,
-        );
-        hash_result.assume_init()
-    }
-}
-
-pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
+#[cfg(not(target_os = "solana"))]
+pub fn hash_into<T: AsRef<[u8]>>(data: &[T], out: &mut [u8; HASH_LENGTH]) {
     let mut hasher = Sha256::new();
     for item in data {
         hasher.update(item.as_ref());
@@ -68,17 +42,15 @@ pub fn hash_into(data: &[&[u8]], out: &mut [u8; HASH_LENGTH]) {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::hash;
+    use crate::*;
 
     #[test]
     fn test_hash() {
-        let h = hash(&[0x48, 0xd8, 0x9d, 0x82, 0x9b, 0x66, 0x04, 0x5f, 0xcc, 0x29, 0x9b, 0x96, 0x67, 0x8e, 0xa6, 0xf5, 0xa6, 0xcd, 0x0c, 0xb4, 0xa2, 0xaf, 0xb2, 0x70, 0xf6, 0x02, 0x7d, 0xe4, 0xdd, 0x7d, 0x3f, 0xb4]);
-        assert_eq!(h, [0xdb, 0x46, 0x53, 0xfa, 0x44, 0x0e, 0x62, 0x1b, 0xe5, 0x4e, 0xf7, 0xd9, 0xc0, 0xe0, 0x64, 0xba, 0x05, 0xb7, 0x85, 0xdb, 0x4f, 0x5a, 0x3d, 0xa6, 0xa8, 0x21, 0xd7, 0x2c, 0x9d, 0x88, 0xd1, 0xea]);
+        let h = hash("test");
+        let h2 = hashv(&["test"]);
+        assert_eq!(h, h2);
+        assert_eq!(h2, [0x9f, 0x86, 0xd0, 0x81, 0x88, 0x4c, 0x7d, 0x65, 0x9a, 0x2f, 0xea, 0xa0, 0xc5, 0x5a, 0xd0, 0x15, 0xa3, 0xbf, 0x4f, 0x1b, 0x2b, 0x0b, 0x82, 0x2c, 0xd1, 0x5d, 0x6c, 0x15, 0xb0, 0xf0, 0x0a, 0x08]);
     }
 }
-
-#[cfg(feature = "hmac")]
-pub mod hmac;
